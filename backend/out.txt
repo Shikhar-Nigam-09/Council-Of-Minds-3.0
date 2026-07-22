@@ -1,0 +1,23 @@
+﻿Register: 200
+Login: 200
+Create Conv: 200
+Post Message: 404
+{"success":false,"error":{"code":"NOT_FOUND","message":"Document not found"}}
+HTTP Client Error: 'message_id'
+--- Uvicorn Output ---
+INFO:     Started server process [32440]
+INFO:     Waiting for application startup.
+{"timestamp": "2026-07-22T21:14:43.893679Z", "level": "INFO", "message": "STARTUP: Starting lifespan handler", "module": "main"}
+{"timestamp": "2026-07-22T21:14:43.893679Z", "level": "INFO", "message": "STARTUP: Lifespan setup complete", "module": "main"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+{"timestamp": "2026-07-22T21:14:48.546495Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "a34d0867-0903-4a41-b27d-31ed7ee171de"}
+INFO:     127.0.0.1:22725 - "POST /api/v1/auth/register HTTP/1.1" 200 OK
+{"timestamp": "2026-07-22T21:14:56.226966Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "c497776b-0fce-4b72-af77-aeb13530ad7b"}
+INFO:     127.0.0.1:20193 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+{"timestamp": "2026-07-22T21:15:00.985347Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "d087166c-c42b-4ce8-90c4-398f89b99940"}
+INFO:     127.0.0.1:17623 - "POST /api/v1/conversations?document_id=7b3a095b-4310-49fe-af61-16462144cdd1 HTTP/1.1" 200 OK
+{"timestamp": "2026-07-22T21:15:06.013022Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "3d25c3bf-be52-45fb-ae63-8b624f525941"}
+{"timestamp": "2026-07-22T21:15:10.109073Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "3d25c3bf-be52-45fb-ae63-8b624f525941"}
+INFO:     127.0.0.1:5484 - "POST /api/v1/conversations/c9f51691-5ab5-4d8f-a4e4-a5e2ed6d11c7/messages HTTP/1.1" 404 Not Found
+

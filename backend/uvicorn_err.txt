@@ -1,0 +1,7 @@
+INFO:     Started server process [34916]
+INFO:     Waiting for application startup.
+{"timestamp": "2026-07-22T20:55:35.667493Z", "level": "INFO", "message": "STARTUP: Starting lifespan handler", "module": "main"}
+{"timestamp": "2026-07-22T20:55:35.668583Z", "level": "INFO", "message": "STARTUP: Lifespan setup complete", "module": "main"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+{"timestamp": "2026-07-22T20:55:40.035662Z", "level": "WARNING", "message": "RateLimiter Redis error, failing open: Error 22 connecting to localhost:6379. 22.", "module": "rate_limiter", "request_id": "95dcfb53-2c2c-4586-9ca5-71d69374c53b"}
