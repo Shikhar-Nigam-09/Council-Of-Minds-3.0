@@ -17,7 +17,7 @@ export default function DashboardPage() {
     const [totalConvs, setTotalConvs] = React.useState(0);
     React.useEffect(() => {
         import('../../lib/axios').then(({ default: api }) => {
-            api.get('/conversations').then(res => {
+            api.get('/api/v1/conversations').then(res => {
                 setTotalConvs(res.data.length);
             }).catch(() => {});
         });

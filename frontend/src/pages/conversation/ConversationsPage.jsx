@@ -26,7 +26,7 @@ export default function ConversationsPage() {
 
     const fetchConversations = async () => {
         try {
-            const res = await api.get('/conversations');
+            const res = await api.get('/api/v1/conversations');
             setConversations(res.data);
         } catch (error) {
             toast.error("Failed to load conversations");
@@ -38,7 +38,7 @@ export default function ConversationsPage() {
     const handleDelete = async (id) => {
         setIsDeleting(true);
         try {
-            await api.delete(`/conversations/${id}`);
+            await api.delete(`/api/v1/conversations/${id}`);
             toast.success("Conversation deleted");
             setConversations(conversations.filter(c => c.id !== id));
         } catch (error) {
