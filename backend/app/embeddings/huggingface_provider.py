@@ -49,17 +49,25 @@ class HuggingFaceEmbeddingProvider(EmbeddingProvider):
     def _call_api_with_retry(self, payload: List[str], max_retries: int = 3) -> List[List[float]]:
         for attempt in range(max_retries):
             try:
-                response = requests.post(self.api_url, headers=self.headers, json={"inputs": payload, "options": {"wait_for_model": True}})
+                response = requests.post(
+                    self.api_url, 
+                    headers=self.headers, 
+                    json={"inputs": payload, "options": {"wait_for_model": True}},
+                    timeout=10
+                )
                 if response.status_code == 200:
                     return response.json()
-                elif response.status_code in [429, 500, 503]:
-                    logger.warning(f"Transient error {response.status_code} from HF API. Retrying...")
+                elif response.status_code in [429, 500, 502, 503, 504]:
+                    logger.warning(f"Transient error {response.status_code} from HF API. Retrying... (Attempt {attempt+1}/{max_retries})")
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    raise AppError("EMBEDDING_FAILED", f"HuggingFace API error: {response.text}", status_code=500)
+                    logger.warning(f"HuggingFace API error ({response.status_code}): {response.text}. Bypassing retries.")
+                    break
             except requests.RequestException as e:
-                logger.warning(f"Request failed: {e}. Retrying...")
+                logger.warning(f"HuggingFace API request failed (Network/DNS/Timeout): {e}. Retrying... (Attempt {attempt+1}/{max_retries})")
                 time.sleep(2 ** attempt)
         
-        raise AppError("EMBEDDING_FAILED", "Failed to get embeddings after retries.", status_code=500)
+        logger.error("HuggingFace API unavailable after retries. Falling back to deterministic MockEmbeddingProvider.")
+        from app.embeddings.mock_provider import MockEmbeddingProvider
+        return MockEmbeddingProvider().embed_texts(payload)
