@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AgentSlider } from './AgentSlider';
 import { PlannerSourceBadge } from './PlannerSourceBadge';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 
 export const CouncilWeightPanel = ({ configuration, onConfirm, isConfirming }) => {
     const [weights, setWeights] = useState({
