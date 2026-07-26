@@ -15,6 +15,9 @@ class HuggingFaceEmbeddingProvider(EmbeddingProvider):
         self.is_local = not bool(api_key)
 
         if self.is_local:
+            logger.info(f"HF_API_KEY loaded: No")
+            logger.info(f"HF_EMBEDDING_MODEL: {self.model_id}")
+            logger.info("Initializing LOCAL SentenceTransformer model")
             try:
                 from sentence_transformers import SentenceTransformer
                 self.model = SentenceTransformer(self.model_id)
@@ -26,6 +29,10 @@ class HuggingFaceEmbeddingProvider(EmbeddingProvider):
         else:
             self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model_id}"
             self.headers = {"Authorization": f"Bearer {self.api_key}"}
+            logger.info(f"HF_API_KEY loaded: Yes ({self.api_key[:6]}***)")
+            logger.info(f"HF_EMBEDDING_MODEL: {self.model_id}")
+            logger.info(f"Inference URL: {self.api_url}")
+            logger.info("Authorization header configured: Yes")
 
     @property
     def dimension(self) -> int:
@@ -49,16 +56,25 @@ class HuggingFaceEmbeddingProvider(EmbeddingProvider):
     def _call_api_with_retry(self, payload: List[str], max_retries: int = 3) -> List[List[float]]:
         for attempt in range(max_retries):
             try:
+                logger.info(f"Calling HuggingFace Inference API at {self.api_url} (Attempt {attempt+1}/{max_retries})")
                 response = requests.post(
                     self.api_url, 
                     headers=self.headers, 
                     json={"inputs": payload, "options": {"wait_for_model": True}},
                     timeout=10
                 )
+                logger.info(f"Received HTTP {response.status_code} from HuggingFace API")
+                
                 if response.status_code == 200:
                     return response.json()
+                elif response.status_code == 401:
+                    logger.error("HuggingFace API error (401): Authentication failure. Invalid HF_API_KEY.")
+                    break
+                elif response.status_code == 404:
+                    logger.error(f"HuggingFace API error (404): Model {self.model_id} not found or not compatible with feature extraction.")
+                    break
                 elif response.status_code in [429, 500, 502, 503, 504]:
-                    logger.warning(f"Transient error {response.status_code} from HF API. Retrying... (Attempt {attempt+1}/{max_retries})")
+                    logger.warning(f"Transient error {response.status_code} from HF API (Rate limit or Server Error). Retrying...")
                     time.sleep(2 ** attempt)
                     continue
                 else:

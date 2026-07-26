@@ -58,7 +58,7 @@ export const useGetConfiguration = (conversationId, messageId) => {
     return useQuery({
         queryKey: ['configuration', conversationId, messageId],
         queryFn: () => conversationApi.getConfiguration(conversationId, messageId),
-        enabled: !!conversationId && !!messageId,
+        enabled: !!conversationId && !!messageId && !String(messageId).startsWith('temp-'),
         refetchOnWindowFocus: false,
         refetchOnReconnect: false
     });
@@ -80,7 +80,7 @@ export const useGetAgentOutputs = (conversationId, messageId) => {
     return useQuery({
         queryKey: ['agent_outputs', conversationId, messageId],
         queryFn: () => conversationApi.getAgentOutputs(conversationId, messageId),
-        enabled: !!conversationId && !!messageId,
+        enabled: !!conversationId && !!messageId && !String(messageId).startsWith('temp-'),
         refetchOnWindowFocus: false,
         refetchOnReconnect: false
     });
