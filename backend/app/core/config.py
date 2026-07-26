@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION_NAME: str = "council_of_minds_chunks"
     TESSERACT_CMD_PATH: str = ""
+    OCR_ENABLED: bool = True
 
     # Phase 4
     GROQ_API_KEY: str | None = None

@@ -111,3 +111,4 @@ frontend/logs/
 !backend/pyproject.toml
 !frontend/package.json
 !frontend/package-lock.json
+backend/.local_vectorstore.json

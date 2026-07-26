@@ -1,6 +1,4 @@
 import fitz
-import pytesseract
-from PIL import Image
 import io
 import logging
 from typing import List, Dict, Any
@@ -8,12 +6,19 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-if settings.TESSERACT_CMD_PATH:
-    pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_CMD_PATH
+if settings.OCR_ENABLED:
+    import pytesseract
+    from PIL import Image
+    if settings.TESSERACT_CMD_PATH:
+        pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_CMD_PATH
 
 class OCRExtractor:
     @staticmethod
     def extract(page: fitz.Page) -> List[Dict[str, Any]]:
+        if not settings.OCR_ENABLED:
+            logger.info(f"OCR is disabled via settings. Skipping OCR on page {page.number}.")
+            return []
+            
         results = []
         try:
             try:
