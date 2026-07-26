@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
-    REDIS_URL: str = ""
+    UPSTASH_REDIS_REST_URL: str = ""
+    UPSTASH_REDIS_REST_TOKEN: str = ""
     MAX_UPLOAD_SIZE_MB: int = 25
     MAX_DOCUMENTS_PER_USER: int = 20
     
