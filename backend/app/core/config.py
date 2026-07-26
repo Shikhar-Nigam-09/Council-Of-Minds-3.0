@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     DAILY_COST_CAP_USD: float = 5.00
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 5
     CIRCUIT_BREAKER_COOLDOWN_SECONDS: int = 30
-    ALLOWED_CORS_ORIGINS: str = ""
+    CORS_ORIGINS: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -61,8 +61,29 @@ class Settings(BaseSettings):
         return self.ENVIRONMENT == "mock"
 
     def get_cors_origins(self) -> List[str]:
-        if not self.ALLOWED_CORS_ORIGINS:
+        if not self.CORS_ORIGINS:
             return []
-        return [origin.strip() for origin in self.ALLOWED_CORS_ORIGINS.split(",")]
+            
+        import json
+        origins = []
+        try:
+            # Try to parse as JSON array (e.g. '["http://localhost"]')
+            parsed = json.loads(self.CORS_ORIGINS)
+            if isinstance(parsed, list):
+                origins = [str(o) for o in parsed]
+            else:
+                origins = [str(parsed)]
+        except Exception:
+            # Fallback to comma-separated string
+            origins = self.CORS_ORIGINS.split(",")
+            
+        # Clean up: strip whitespace, ignore empty, and remove duplicates safely
+        cleaned = []
+        for o in origins:
+            o = o.strip()
+            if o and o not in cleaned:
+                cleaned.append(o)
+                
+        return cleaned
 
 settings = Settings()
