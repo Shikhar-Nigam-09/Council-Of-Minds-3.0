@@ -59,15 +59,15 @@ class QdrantProvider(VectorStoreProvider):
                 must_conditions.append(FieldCondition(key=k, match=MatchValue(value=v)))
             qdrant_filter = Filter(must=must_conditions)
             
-        search_result = self.client.search(
+        search_result = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
             query_filter=qdrant_filter
         )
         
         results = []
-        for point in search_result:
+        for point in search_result.points:
             # point.id is the vector_id, but the payload might also contain 'vector_id' and other metadata
             res = point.payload.copy() if point.payload else {}
             res["id"] = str(point.id)  # Qdrant's ID is the vector_id
