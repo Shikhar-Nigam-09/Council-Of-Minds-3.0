@@ -1,4 +1,5 @@
 from typing import List, Optional
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -54,6 +55,37 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+    
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def fix_database_url(cls, v: str) -> str:
+        if not v:
+            return v
+        if v.startswith("postgres://"):
+            v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif v.startswith("postgresql://"):
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            
+        import urllib.parse
+        parsed = urllib.parse.urlparse(v)
+        query_params = urllib.parse.parse_qsl(parsed.query)
+        
+        new_query_params = []
+        for k, val in query_params:
+            if k in ("options", "endpoint", "channel_binding"):
+                continue
+            if k == "sslmode":
+                k = "ssl"
+            new_query_params.append((k, val))
+            
+        # Ensure ssl=require is present for Neon databases
+        if parsed.hostname and "neon.tech" in parsed.hostname:
+            if not any(k == "ssl" for k, _ in new_query_params):
+                new_query_params.append(("ssl", "require"))
+            
+        new_query = urllib.parse.urlencode(new_query_params)
+        v = urllib.parse.urlunparse(parsed._replace(query=new_query))
+        return v
     
     @property
     def is_mock_mode(self) -> bool:
