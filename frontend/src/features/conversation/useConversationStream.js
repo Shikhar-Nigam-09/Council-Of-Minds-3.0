@@ -25,7 +25,8 @@ export const useConversationStream = (conversationId, messageId) => {
         const token = useAuthStore.getState().accessToken;
 
         try {
-            const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+            const envBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+            const baseUrl = envBaseUrl.endsWith('/api/v1') ? envBaseUrl : `${envBaseUrl}/api/v1`;
             console.log(`[useConversationStream] initiating fetch stream to ${baseUrl}/conversations/${conversationId}/messages/${messageId}/stream...`);
             const response = await fetch(`${baseUrl}/conversations/${conversationId}/messages/${messageId}/stream`, {
                 headers: {
