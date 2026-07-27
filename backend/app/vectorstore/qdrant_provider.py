@@ -25,19 +25,28 @@ class QdrantProvider(VectorStoreProvider):
             )
             
         # Ensure the payload index exists for document_id (idempotent operation)
+        logger.info(f"[QdrantProvider] Creating/verifying payload index for 'document_id' on collection: '{self.collection_name}'")
         try:
-            self.client.create_payload_index(
+            res = self.client.create_payload_index(
                 collection_name=self.collection_name,
                 field_name="document_id",
                 field_schema=PayloadSchemaType.KEYWORD,
             )
+            logger.info(f"[QdrantProvider] Payload index successfully created or verified. Response: {res}")
         except Exception as e:
-            # Qdrant silently ignores this if the index already exists, but wrapping it 
-            # in try-except guarantees it will never interrupt the startup sequence.
-            logger.info(f"Payload index for document_id verified or creation skipped: {e}")
+            logger.error(f"[QdrantProvider] EXACT EXCEPTION during create_payload_index: {repr(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+        try:
+            info = self.client.get_collection(self.collection_name)
+            logger.info(f"[QdrantProvider] Collection info payload_schema: {info.payload_schema}")
+        except Exception as e:
+            logger.error(f"[QdrantProvider] Failed to fetch collection info: {e}")
 
     @with_circuit_breaker("qdrant")
     def upsert_chunks(self, document_id: str, chunks_with_vectors: List[Dict[str, Any]]) -> None:
+        logger.info(f"[QdrantProvider] upsert_chunks called for document_id: {document_id}, collection: '{self.collection_name}'")
         if not chunks_with_vectors:
             return
             
@@ -52,6 +61,10 @@ class QdrantProvider(VectorStoreProvider):
                     payload=payload
                 )
             )
+            
+        if len(points) > 0:
+            logger.info(f"[QdrantProvider] Sample payload being upserted: {points[0].payload}")
+            
         self.client.upsert(collection_name=self.collection_name, points=points)
 
     @with_circuit_breaker("qdrant")
@@ -65,12 +78,14 @@ class QdrantProvider(VectorStoreProvider):
 
     @with_circuit_breaker("qdrant")
     def search(self, query_vector: List[float], top_k: int, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        logger.info(f"[QdrantProvider] search called on collection: '{self.collection_name}', top_k: {top_k}, filters: {filters}")
         qdrant_filter = None
         if filters:
             must_conditions = []
             for k, v in filters.items():
                 must_conditions.append(FieldCondition(key=k, match=MatchValue(value=v)))
             qdrant_filter = Filter(must=must_conditions)
+            logger.info(f"[QdrantProvider] Executing query_points with filter: {qdrant_filter}")
             
         search_result = self.client.query_points(
             collection_name=self.collection_name,

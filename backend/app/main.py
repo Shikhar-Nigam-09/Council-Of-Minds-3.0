@@ -23,6 +23,23 @@ from app.graph.checkpointer import close_checkpointer
 async def lifespan(app: FastAPI):
     logger.info("STARTUP: Starting lifespan handler")
     # Checkpointer is now lazy-loaded on first use
+    
+    # Ensure vector store collection and payload indexes exist on startup
+    try:
+        from app.embeddings import get_embedding_provider
+        from app.vectorstore import get_vectorstore_provider
+        
+        emb = get_embedding_provider()
+        vs = get_vectorstore_provider()
+        
+        logger.info("STARTUP: Verifying vector store collection and indexes...")
+        # Note: This is an important network call that guarantees payload indexes 
+        # exist *before* any query executes, not just during document upload.
+        vs.ensure_collection(emb.dimension)
+        logger.info("STARTUP: Vector store verified.")
+    except Exception as e:
+        logger.error(f"STARTUP: Failed to initialize vector store: {e}")
+        
     logger.info("STARTUP: Lifespan setup complete")
     yield
     # Teardown checkpointer
