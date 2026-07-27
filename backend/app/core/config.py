@@ -56,9 +56,9 @@ class Settings(BaseSettings):
         extra="ignore"
     )
     
-    @field_validator("DATABASE_URL", mode="before")
-    @classmethod
-    def fix_database_url(cls, v: str) -> str:
+    @property
+    def ASYNC_DATABASE_URL(self) -> str:
+        v = self.DATABASE_URL
         if not v:
             return v
         if v.startswith("postgres://"):

@@ -18,12 +18,6 @@ async def get_checkpointer():
         "autocommit": True,
         "prepare_threshold": 0,
     }
-    
-    if "neon.tech" in db_url:
-        kwargs["sslmode"] = "require"
-        host = db_url.split("@")[-1].split("/")[0]
-        endpoint = host.split(".")[0].replace("-pooler", "")
-        kwargs["options"] = f"endpoint={endpoint}"
 
     from psycopg_pool import ConnectionPool
     from langgraph.checkpoint.postgres import PostgresSaver
