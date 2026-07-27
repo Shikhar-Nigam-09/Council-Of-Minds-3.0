@@ -2,7 +2,8 @@ from typing import List, Dict, Any, Optional
 import logging
 import uuid
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue, PayloadSchemaType
+
 from app.vectorstore.base import VectorStoreProvider
 from app.core.exceptions import AppError
 from app.core.circuit_breaker import with_circuit_breaker
@@ -22,6 +23,18 @@ class QdrantProvider(VectorStoreProvider):
                 collection_name=self.collection_name,
                 vectors_config=VectorParams(size=dimension, distance=Distance.COSINE),
             )
+            
+        # Ensure the payload index exists for document_id (idempotent operation)
+        try:
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="document_id",
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
+        except Exception as e:
+            # Qdrant silently ignores this if the index already exists, but wrapping it 
+            # in try-except guarantees it will never interrupt the startup sequence.
+            logger.info(f"Payload index for document_id verified or creation skipped: {e}")
 
     @with_circuit_breaker("qdrant")
     def upsert_chunks(self, document_id: str, chunks_with_vectors: List[Dict[str, Any]]) -> None:
